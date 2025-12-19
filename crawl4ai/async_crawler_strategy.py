@@ -1054,11 +1054,16 @@ class AsyncPlaywrightCrawlerStrategy(AsyncCrawlerStrategy):
 
         finally:
             # If no session_id is given we should close the page
-            all_contexts = page.context.browser.contexts
-            total_pages = sum(len(context.pages) for context in all_contexts)                
             if config.session_id:
                 pass
-            elif total_pages <= 1 and (self.browser_config.use_managed_browser or self.browser_config.headless):
+            # FIX: Removed `self.browser_config.headless` and `total_pages <= 1` from condition.
+            # - headless only controls visibility, NOT page lifecycle
+            # - total_pages <= 1 was wrong: it prevented closing the only page!
+            # Only skip closing when use_managed_browser=True (user explicitly manages browser).
+            # NOTE: This fix works for both list-based crawling AND deep_crawl (BFS/DFS).
+            # Deep crawl strategies extract links from CrawlResult.links AFTER page.content()
+            # returns, so closing the page here doesn't affect link discovery.
+            elif self.browser_config.use_managed_browser:
                 pass
             else:
                 # Detach listeners before closing to prevent potential errors during close
