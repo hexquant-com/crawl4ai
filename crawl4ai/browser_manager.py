@@ -1013,7 +1013,15 @@ class BrowserManager:
             "cache_mode",
             "content_filter",
             "semaphore_count",
-            "url"
+            "url",
+            # FIX: These are object instances whose str() includes memory address,
+            # causing different signatures even for identical configs.
+            # They don't affect browser context setup anyway.
+            # NOTE: This fix benefits deep_crawl (BFS/DFS) especially, since all
+            # discovered URLs share the same CrawlerRunConfig and should reuse
+            # the same BrowserContext instead of spawning new ones.
+            "markdown_generator",
+            "table_extraction",
         ]
         
         # Do NOT exclude locale, timezone_id, or geolocation as these DO affect browser context
